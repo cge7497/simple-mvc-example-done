@@ -3,6 +3,7 @@ const models = require('../models');
 
 // get the Cat model
 const { Cat } = models;
+const { Dog } = models;
 
 // default fake data so that we have something to work with until we make a real Cat
 const defaultData = {
@@ -228,6 +229,65 @@ const updateLast = (req, res) => {
   });
 };
 
+// Function to create a new dog in the database
+const setDogName = async (req, res) => {
+  if (!req.body.name || !req.body.breed || !req.body.age) {
+    // If they are missing data, send back an error.
+    return res.status(400).json({ error: 'name, breed, and age are all required' });
+  }
+
+  const dogData = {
+    name: req.body.name,
+    breed: req.body.breed,
+    age: req.body.age
+  };
+
+  const newDog = new Dog(dogData);
+
+  try {
+
+    await newDog.save();
+
+    return res.json({
+      name: newDog.name,
+      breed: newDog.breed,
+      age: newDog.age,
+    });
+  } catch (err) {
+    // If something goes wrong while communicating with the database, log the error and send
+    // an error message back to the client.
+    console.log(err);
+    return res.status(500).json({ error: 'failed to create dog' });
+  }
+};
+
+// Function to handle searching a dog by name.
+const searchDogName = async (req, res) => {
+  if (!req.query.name) {
+    return res.status(400).json({ error: 'Name is required to perform a search' });
+  }
+
+  try {
+    const doc = await Dog.findOne({ name: req.query.name }).exec();
+
+    // If we do not find something that matches our search, doc will be empty.
+    if (!doc) {
+      return res.json({ error: `A dog with the name '${req.query.name}' does not exist.` });
+    }
+
+    doc.age++;
+
+    doc.save();
+
+    // Otherwise, we got a result and will send it back to the user.
+    return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
+  } catch (err) {
+    // If there is an error, log it and send the user an error message.
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+};
+
 // A function to send back the 404 page.
 const notFound = (req, res) => {
   res.status(404).render('notFound', {
@@ -243,6 +303,8 @@ module.exports = {
   page3: hostPage3,
   getName,
   setName,
+  setDogName,
+  searchDogName,
   updateLast,
   searchName,
   notFound,

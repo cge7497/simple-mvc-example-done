@@ -60,7 +60,7 @@ const hostPage1 = async (req, res) => {
     const docs = await Cat.find({}).lean().exec();
 
     // Once we get back the docs array, we can send it to page1.
-    return res.render('page4', { dogs: docs });
+    return res.render('page1', { cats: docs });
   } catch (err) {
     /* If our database returns an error, or is unresponsive, we will print that error to
        our console for us to see. We will also send back an error message to the client.
